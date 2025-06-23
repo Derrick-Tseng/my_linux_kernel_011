@@ -29,7 +29,7 @@ _start_setup:
     movb $0x88, %ah
     int  $0x15
     movw %ax, (2)
-    
+
     movb $0x0f, %ah
     int  $0x10
     movw %bx, (4)
@@ -77,10 +77,11 @@ no_disk1:
     movw $0x00, %ax
     rep
     stosb
+
 is_disk1:
     /* prepare for protection mode */
     cli
-    
+
     movw $0x0000, %ax
     cld
 do_move:
@@ -106,7 +107,6 @@ end_move:
 
     movw $SETUPSEG, %ax
     movw %ax, %ds
-    lidt idt_48
     lgdt gdt_48
 
     call empty_8042
@@ -117,7 +117,7 @@ end_move:
     outb %al,  $0x60
     call empty_8042
 
-    movb $0x11, %al
+        movb $0x11, %al
     outb %al,  $0x20
     .word 0x00eb, 0x00eb
     outb %al,  $0xA0
@@ -133,16 +133,17 @@ end_move:
     .word 0x00eb, 0x00eb
     movb $0x02, %al
     outb %al, $0xA1
-    
+
     .word 0x00eb, 0x00eb
     movb $0x01, %al
     outb %al, $0x21
     .word 0x00eb, 0x00eb
     outb %al, $0xA1
     .word 0x00eb, 0x00eb
-    movb $0xff, %al
+    movb $0xfe, %al
     outb %al, $0x21
     .word 0x00eb, 0x00eb
+    movb $0xff, %al
     outb %al, $0xA1
 
     movl %cr0, %eax
@@ -177,9 +178,7 @@ gdt:
     .word 0x8000
     .word 0x920b
     .word 0x00c0
-idt_48:
-    .word 0
-    .word 0,0
+
 gdt_48:
     .word 0x800
     .word 512+gdt, 0x9
