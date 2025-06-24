@@ -117,7 +117,7 @@ end_move:
     outb %al,  $0x60
     call empty_8042
 
-        movb $0x11, %al
+    movb $0x11, %al
     outb %al,  $0x20
     .word 0x00eb, 0x00eb
     outb %al,  $0xA0
@@ -140,10 +140,9 @@ end_move:
     .word 0x00eb, 0x00eb
     outb %al, $0xA1
     .word 0x00eb, 0x00eb
-    movb $0xfe, %al
+    movb $0xff, %al
     outb %al, $0x21
     .word 0x00eb, 0x00eb
-    movb $0xff, %al
     outb %al, $0xA1
 
     movl %cr0, %eax

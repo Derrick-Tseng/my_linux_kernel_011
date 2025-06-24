@@ -18,7 +18,7 @@
 
 #define STRINGIFY(x) #x
 
-#define ARG_LEN 3
+#define ARG_LEN 4
 
 void die(char * str)
 {

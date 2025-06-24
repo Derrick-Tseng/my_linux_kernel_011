@@ -19,9 +19,9 @@ ROOT_DEV  = 0x000
 
 .global _start
 _start:
-  
+
   jmpl $BOOTSEG, $start2
-  
+
 start2:
   movw $BOOTSEG, %ax
   movw %ax, %ds
@@ -33,9 +33,9 @@ start2:
 
   rep
   movsw
-  
+
   jmpl $INITSEG, $go
-  
+
 go:
 	movw %cs, %ax
 	movw %ax, %ds
@@ -47,8 +47,8 @@ load_setup:
 	movw $0x0000, %dx
 	movw $0x0002, %cx
 	movw $0x0200, %bx
-	movb $0x02,   %ah
 	movb $SETUPLEN, %al
+	movb $0x02,   %ah
 	int  $0x13
 	jnc  ok_load_setup
 	movw $0x0000, %dx
@@ -88,13 +88,13 @@ root_defined:
 	movw %cs, %ax
 	movw %ax, %ds
 	movw %ax, %es
-	
+
 	movw $0x600, %ax
 	movw $0x700, %bx
 	movw $0x0,   %cx
 	movw $0x184f,%dx
 	int  $0x10
-	
+
 	movw $msg, %ax
 	movw %ax, %bp
 	movw $0x01301, %ax
@@ -202,10 +202,10 @@ sectors:
 msg:
 .byte 13, 10
 .ascii "Linux is booting..."
-.byte 13, 10 
+.byte 13, 10
 .org 508
 root_dev:
 	.word ROOT_DEV
 boot_flag:
 	.word 0xaa55
-  
+
