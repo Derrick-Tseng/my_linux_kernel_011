@@ -1,6 +1,7 @@
 AS := x86_64-elf-as --32
 LD := x86_64-elf-ld -m elf_i386
 QEMU = qemu-system-i386
+QEMU_OPTS = -drive file=linux.img,format=raw,if=floppy -boot a -monitor stdio
 
 LDFLAG := -Ttext 0x0 -s --oformat binary
 
@@ -28,7 +29,8 @@ setup.o : setup.S
 		$(AS) -o $@ $<
 
 run: linux.img
-	$(QEMU) -drive file=$<,format=raw,if=floppy -boot a
+	# $(QEMU) -drive file=$<,format=raw,if=floppy -boot a
+	$(QEMU) $(QEMU_OPTS)
 
 clean:
 	rm -f *.o
