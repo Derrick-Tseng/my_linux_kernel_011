@@ -4,4 +4,6 @@
 void con_init();
 void tty_init();
 
+void con_write(const char* buf, int nr);
+
 #endif
