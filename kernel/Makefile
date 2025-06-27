@@ -3,7 +3,7 @@ LD := x86_64-elf-ld -m elf_i386
 CCFLAG := -m32 -I../include -nostdinc -Wall -fomit-frame-pointer -c
 LDFLAG := -Ttext 0x0 -s --oformat binary -m elf_i386
 INCDIR := ../include
-OBJS   := head.o main.o sched.o chr_drv/chr_drv.a printk.o vsprintf.o ../lib/lib.a
+OBJS   := head.o main.o sched.o chr_drv/chr_drv.a printk.o vsprintf.o mm/mm.o ../lib/lib.a
 
 system: $(OBJS)
 	$(LD) $(LDFLAG) -e startup_32 -o $@ $^
@@ -28,6 +28,9 @@ vsprintf.o : vsprintf.c
 
 main.o : main.c
 	$(GCC) $(CCFLAG) -o $@ $<
+
+mm/mm.o : mm/*.c
+	cd mm; make mm.o; cd ..
 
 clean :
 	rm -f *.o
