@@ -12,6 +12,5 @@ string.o : string.c
 		$(GCC) $(CCFLAG) -o $@ $<
 
 clean : 
-		-rm *.o
-		-rm lib.a
-
+	rm -f *.o
+	rm -f lib.a

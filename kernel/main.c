@@ -3,6 +3,7 @@
 
 #include <linux/tty.h>
 #include <linux/kernel.h>
+#include <linux/sched.h>
 
 extern void mem_init(long start_mem, long end_mem);
 
@@ -33,6 +34,7 @@ void main(void) {
 
     main_memory_start = buffer_memory_end;
     mem_init(main_memory_start, memory_end);
+    sched_init();
 
     tty_init();
     printk("memory start: %d, end: %d", main_memory_start, memory_end);
