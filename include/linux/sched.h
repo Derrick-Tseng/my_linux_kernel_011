@@ -4,6 +4,7 @@
 #include <linux/head.h>
 #include <linux/mm.h>
 
-void sched_init();
+extern void sched_init();
+extern void trap_init();
 
 #endif

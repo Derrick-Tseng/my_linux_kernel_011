@@ -58,3 +58,5 @@ bootsect
 setup
 system
 build
+
+settings.json

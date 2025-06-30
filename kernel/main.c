@@ -34,12 +34,18 @@ void main(void) {
 
     main_memory_start = buffer_memory_end;
     mem_init(main_memory_start, memory_end);
+
+    trap_init();
     sched_init();
 
     tty_init();
     printk("memory start: %d, end: %d", main_memory_start, memory_end);
-    __asm__("int $0x80 \n\r"::);
     __asm__ __volatile__(
+            "int $0x80\n\r"
+            "movw $0x1b, %%ax\n\r"
+            "movw %%ax, %%gs\n\r"
+            "movl $0, %%edi\n\r"
+            "movw $0x0f41, %%gs:(%%edi)\n\r"
             "loop:\n\r"
             "jmp loop"
             ::);
