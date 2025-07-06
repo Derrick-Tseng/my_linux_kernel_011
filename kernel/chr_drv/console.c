@@ -149,7 +149,7 @@ static void del(){
     }
 }
 
-void console_print(const char* buf, int nr){
+void con_write(const char* buf, int nr){
     char* str = buf;
     
     while(nr--) {
@@ -249,20 +249,3 @@ void con_init() {
     gotoxy(ORIG_X, ORIG_Y);
     set_cursor();
 }
-
-void con_write(const char* buf, int nr) {
-    char* t = (char*)pos;
-    const char* s = buf;
-    int i = 0;
-
-    for (i = 0; i < nr; i++) {
-        *t++ = *(s++);
-        *t++ = 0xf;
-        x++;
-    }
-
-    pos = (long)t;
-    gotoxy(x, y);
-    set_cursor();
-}
-

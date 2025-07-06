@@ -12,11 +12,12 @@ static long buffer_memory_end = 0;
 static long main_memory_start = 0;
 
 void main(void) {
-    memory_end = (1 << 20) + (EXT_MEM_K << 10); // 1MB + extended memory in KB
+
+    // 1MB + extended memory in KB
+    // Left shift the value of EXT_MEM_K by 10 bits to convert it from kilobytes to bytes
+    memory_end = (1 << 20) + (EXT_MEM_K << 10);
     memory_end &= 0xFFFFF000; // Align to 64KB boundary
 
-    // Left shift the value of EXT_MEM_K by 10 bits to convert it from kilobytes to bytes
-    memory_end = (1<<20) + (EXT_MEM_K<<10);
     if(memory_end > 16 * 1024 * 1024){
         memory_end = 16 * 1024 * 1024;
     }
@@ -39,7 +40,7 @@ void main(void) {
     sched_init();
 
     tty_init();
-    printk("memory start: %d, end: %d", main_memory_start, memory_end);
+    printk("\n\rmemory start: %d, end: %d\n\r", main_memory_start, memory_end);
     __asm__ __volatile__(
             "int $0x80\n\r"
             "movw $0x1b, %%ax\n\r"

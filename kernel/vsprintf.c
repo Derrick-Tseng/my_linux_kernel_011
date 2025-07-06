@@ -86,7 +86,7 @@ static char *number(char *str, int num, int base, int size, int precision, int t
     // Pad with spaces or zeros
     if(!(type & (ZEROPAD + LEFT))){
         while(size-- > 0){
-            *str++ = c;
+            *str++ = ' ';
         }
     }
 
@@ -102,7 +102,7 @@ static char *number(char *str, int num, int base, int size, int precision, int t
         }else if(base == 16){
             // Add '0x' or '0X for hexadecimal
             *str++ = '0';
-            *str++ = (type & SMALL) ? 'x' : 'X';
+            *str++ = digits[33];
         }
     }
 
@@ -221,14 +221,14 @@ int vsprintf(char *buf, const char *fmt, va_list args){
                 }
 
                 if(!(flags & LEFT)){
-                    while(--field_width > len){
+                    while(field_width-- > len){
                         *str++ = ' ';
                     }
                 }
                 for(i = 0; i < len; i++){
                     *str++ = *s++;
                 }
-                while(--field_width > len){
+                while(field_width-- > len){
                     *str++ = ' ';
                 }
                 break;
@@ -255,7 +255,7 @@ int vsprintf(char *buf, const char *fmt, va_list args){
             case('d'): {
             }
             case('i'): {
-                flags = SIGN; // Default to signed integer
+                flags |= SIGN; // Default to signed integer
             }
             case('u'): {
                 str = number(str, va_arg(args, unsigned long), 10, field_width, precision, flags);
