@@ -4,10 +4,13 @@
 #include <linux/sched.h>
 #include <linux/fork.h>
 #include <asm/system.h>
+#include <asm/io.h>
 
 #define PAGE_SIZE 4096
+#define LATCH (1193180/HZ)
 
 extern int system_call();
+extern void timer_interrupt();
 
 // pcb
 union task_union {
@@ -33,6 +36,14 @@ struct
     long *a;
     short b;
 } stack_start = {&user_stack[PAGE_SIZE >> 2], 0x10};
+
+void do_timer(long cpl) {
+    static unsigned char c = '0';
+    if (c > 127) {
+        c = '0';
+    }
+    printk("\b%c", c++);
+}
 
 
 void sched_init() {
@@ -64,6 +75,16 @@ void sched_init() {
     // Loads the Task Register (TR) and LDT Register with initial values
     ltr(0);
     lldt(0);
+
+    // Set up the timer
+    outb_p(0x36, 0x43);
+    outb_p(LATCH & 0xff, 0x40);
+    outb(LATCH >> 8, 0x40);
+    
+    // Sets up the Interrupt Descriptor Table (IDT) for the timer interrupt
+    set_intr_gate(0x20, &timer_interrupt);
+    outb(inb_p(0x21) & ~0x01, 0x21);
+
     // Sets up system call gate for interrupt 0x80
     set_system_gate(0x80, &system_call);
 }

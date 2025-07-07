@@ -6,6 +6,8 @@
 #define FIRST_TASK task[0]
 #define LAST_TASK task[NR_TASKS-1]
 
+#define HZ 100
+
 #include <linux/head.h>
 #include <linux/mm.h>
 
