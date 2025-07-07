@@ -308,7 +308,7 @@ __asm__("cld\n\t"
 return s;
 }
 
-char * ___strtok;
+static char * ___strtok;
 
 inline char * strtok(char * s,const char * ct) {
 register char * __res __asm__("si");

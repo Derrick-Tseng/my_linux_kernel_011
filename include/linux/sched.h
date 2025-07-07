@@ -1,11 +1,23 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
+// Linux 0.11 supports only 64 tasks
+#define NR_TASKS 64
+#define FIRST_TASK task[0]
+#define LAST_TASK task[NR_TASKS-1]
+
 #include <linux/head.h>
 #include <linux/mm.h>
 
 void trap_init();
 void sched_init();
+
+void test_a();
+void test_b();
+int create_second_process();
+
+extern struct task_struct *task[NR_TASKS];
+extern struct task_struct *current;
 
 struct tss_struct {
     long back_link;
