@@ -30,3 +30,13 @@ void sched_init() {
     set_system_gate(0x80, &system_call);
 }
 
+// int create_second_process(){
+//     struct task_struct *p;
+//     int i, nr;
+
+//     nr = find_empty_process();
+//     if(nr < 0){
+//         return  -EAGAIN;
+//     }
+// }
+
