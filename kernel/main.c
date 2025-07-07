@@ -4,6 +4,7 @@
 #include <linux/tty.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
+#include <asm/system.h>
 
 extern void mem_init(long start_mem, long end_mem);
 
@@ -41,12 +42,11 @@ void main(void) {
 
     tty_init();
     printk("\n\rmemory start: %d, end: %d\n\r", main_memory_start, memory_end);
+
+    move_to_user_mode();
+
     __asm__ __volatile__(
             "int $0x80\n\r"
-            "movw $0x1b, %%ax\n\r"
-            "movw %%ax, %%gs\n\r"
-            "movl $0, %%edi\n\r"
-            "movw $0x0f41, %%gs:(%%edi)\n\r"
             "loop:\n\r"
             "jmp loop"
             ::);
