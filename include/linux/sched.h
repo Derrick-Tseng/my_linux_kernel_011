@@ -77,4 +77,20 @@ struct task_struct {
 #define ltr(n) __asm__("ltr %%ax"::"a"(_TSS(n)))
 #define lldt(n) __asm__("lldt %%ax"::"a"(_LDT(n)))
 
+
+// Asm Line 1: Compare current task with the new task
+// Asm Line 4: points current to the new task
+// Asm Line 5: Jump to the new task's code segment and the cpu saves the context to the current state's TSS
+#define switch_to(n) {\
+    struct {long a,b;} __tmp; \
+    __asm__("cmpl %%ecx,current\n\t" \
+            "je 1f\n\t" \
+            "movw %%dx,%1\n\t" \
+            "xchgl %%ecx,current\n\t" \
+            "ljmp *%0\n\t" \
+            "1:" \
+            ::"m" (*&__tmp.a),"m" (*&__tmp.b), \
+            "d" (_TSS(n)),"c" ((long) task[n])); \
+}
+
 #endif

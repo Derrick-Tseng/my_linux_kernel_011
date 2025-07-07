@@ -1,10 +1,12 @@
 #include <errno.h>
+#include <linux/sched.h>
 #include <string.h>
 #include <linux/kernel.h>
-#include <linux/sched.h>
-#include <linux/fork.h>
 #include <asm/system.h>
 #include <asm/io.h>
+#include <linux/fork.h>
+ 
+#define COUNTER 100
 
 #define PAGE_SIZE 4096
 #define LATCH (1193180/HZ)
@@ -37,12 +39,28 @@ struct
     short b;
 } stack_start = {&user_stack[PAGE_SIZE >> 2], 0x10};
 
+
+int clock = COUNTER;
+static int cnt = 0;
+static int isFirst = 1;
 void do_timer(long cpl) {
-    static unsigned char c = '0';
-    if (c > 127) {
-        c = '0';
+    if(clock > 0 && clock <= COUNTER){
+        clock--;
     }
-    printk("\b%c", c++);
+    else if(clock == 0){
+        clock = COUNTER;
+        if(isFirst){
+            isFirst = 0;
+            switch_to(1);
+        }
+        else{
+            isFirst = 1;
+            switch_to(0);
+        }
+    }
+    else{
+        clock = COUNTER;
+    }
 }
 
 
@@ -80,7 +98,7 @@ void sched_init() {
     outb_p(0x36, 0x43);
     outb_p(LATCH & 0xff, 0x40);
     outb(LATCH >> 8, 0x40);
-    
+
     // Sets up the Interrupt Descriptor Table (IDT) for the timer interrupt
     set_intr_gate(0x20, &timer_interrupt);
     outb(inb_p(0x21) & ~0x01, 0x21);
