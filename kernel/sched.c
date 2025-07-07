@@ -34,12 +34,17 @@ struct
     short b;
 } stack_start = {&user_stack[PAGE_SIZE >> 2], 0x10};
 
+
 void sched_init() {
     int i;
     struct desc_struct* p;
+    // Sets up the Task State Segment (TSS) descriptor for the initial task
     set_tss_desc(gdt + FIRST_TSS_ENTRY, &(init_task.task.tss));
+    // Sets up the Local Descriptor Table (LDT) descriptor for the initial task
     set_ldt_desc(gdt + FIRST_LDT_ENTRY, &(init_task.task.ldt));
 
+    // Initializes all task slots in the task array to NULL
+    // Clears all TSS and LDT descriptor entries in the Global Descriptor Table (GDT)
     p = gdt+2+FIRST_TSS_ENTRY;
     for(i=0; i<NR_TASKS; i++, p+=2){
         task[i] = 0;
@@ -53,9 +58,13 @@ void sched_init() {
 
     create_second_process();
 
+    // Clears the Nested Task (NT) flag in EFLAGS register
     __asm__("pushfl; andl $0xffffbfff, (%esp); popfl");
+
+    // Loads the Task Register (TR) and LDT Register with initial values
     ltr(0);
     lldt(0);
+    // Sets up system call gate for interrupt 0x80
     set_system_gate(0x80, &system_call);
 }
 
