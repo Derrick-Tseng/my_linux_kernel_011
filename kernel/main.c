@@ -50,9 +50,11 @@ void main(void) {
     move_to_user_mode();
 
     if (fork() == 0) {
-        test_b();
-    }
-    else {
-        test_a();
+        if (fork() == 0) {
+            test_b();
+        }
+        else {
+            test_a();
+        }
     }
 }

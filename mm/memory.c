@@ -1,5 +1,8 @@
 #include <linux/sched.h>
 
+#define copy_page(from,to) \
+__asm__("cld ; rep ; movsl"::"S" (from),"D" (to),"c" (1024):)
+
 unsigned long HIGH_MEMORY = 0x100000; // 1MB, the end of low memory
 unsigned char mem_map[PAGING_PAGES] = {0, }; // Memory map for pages
 
@@ -111,6 +114,45 @@ int copy_page_tables(unsigned long from,unsigned long to,long size) {
     }
     invalidate();
     return 0;
+}
+
+// Handles write protection faults in the memory management system.
+void un_wp_page(unsigned long *table_entry){
+    unsigned long old_page, new_page;
+    old_page = 0xfffff000 & *table_entry; // Get the old page address
+
+    // Only memory above LOW_MEM(1MB) are managed by mem_map
+    // If the count is 1, it means only one process references the page
+    // In this case, we can simply turn the page writable, and return
+    if(old_page >= LOW_MEM && mem_map[MAP_NR(old_page)] == 1){
+        *table_entry |= 2; // Set the page as writable
+        invalidate();
+        return; // No need to allocate a new page
+    }
+
+    // Allocates a new page, decrements the reference count of the old page
+    new_page = get_free_page();
+    if(old_page >= LOW_MEM)
+        mem_map[MAP_NR(old_page)]--; // Decrement the page count for the old page
+
+    // Copies the page content, and updates the page table entry
+    copy_page(old_page, new_page);
+    *table_entry = new_page | 7; // Set the new page as present, read/write, user access
+    invalidate();
+}
+
+// Handles write protection page faults for kernel space addresses.
+void do_wp_page(unsigned long error_code, unsigned long address){
+
+    //INIT process does not occurrs write protection faults
+    if(address < TASK_SIZE)
+        panic("do_wp_page called for user space address");
+
+    // Uses bits 31-22 of address to index into page directory
+    // Uses bits 21-12 of address to index into page table
+    un_wp_page((unsigned long *)
+            (((address>>10) & 0xffc) + (0xfffff000 &
+                *((unsigned long *) ((address>>20) &0xffc)))));
 }
 
 void mem_init(long start_mem, long end_mem){
