@@ -28,6 +28,12 @@
 #define NULL ((void *) 0)
 #endif
 
+#define TASK_RUNNING            0
+#define TASK_INTERRUPTIBLE      1
+#define TASK_UNINTERRUPTIBLE    2
+#define TASK_ZOMBIE             3
+#define TASK_STOPPED            4
+
 #include <linux/head.h>
 #include <linux/mm.h>
 
@@ -75,6 +81,8 @@ struct tss_struct {
 
 struct task_struct {
     long state;
+    long counter;
+    long priority;
     long pid;
     struct task_struct *p_pptr;
     struct desc_struct ldt[3];
@@ -83,10 +91,15 @@ struct task_struct {
 
 #define INIT_TASK \
 {                   \
+    0,              \
+    15,             \
+    15,             \
+    0,              \
+    &init_task.task,\
     {               \
         {0, 0},     \
-        {0x9f, 0xc0fa00},   \
-        {0x9f, 0xc0f200},   \
+        {0xfff, 0xc0fa00},   \
+        {0xfff, 0xc0f200},   \
     },              \
     {0, PAGE_SIZE + (long)&init_task, 0x10, 0, 0, 0, 0, (long)&pg_dir, \
         0, 0, 0, 0, 0, 0, 0, 0, \

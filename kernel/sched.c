@@ -44,27 +44,122 @@ struct
 int clock = COUNTER;
 static int cnt = 0;
 static int isFirst = 1;
+
+
 void do_timer(long cpl) {
-    if (clock >0 && clock <= COUNTER) {
-        clock--;
-    }
-    else if (clock == 0) {
-        schedule();
-    }
-    else {
-        clock = COUNTER;
-    }
+    if((--current->counter) > 0)
+        return; // If the counter is still positive, return
+
+    current->counter = 0;
+
+    // Check if the process is in the kernel mode or user mode
+    // Do not schedule if the process is in kernel mode
+    if(!cpl)
+        return;
+
+    schedule();
 }
 
 void schedule() {
-    if (current == task[0] && task[1]) {
-        switch_to(1);
+    int i, next, c;
+    struct task_struct **p;
+
+    while(1){
+        c = -1;
+        next = 0;
+        i = NR_TASKS;
+        p = &task[NR_TASKS];
+
+        while(--i){
+            if(!*--p)
+                continue; // Skip if task slot is empty
+
+            // If the task is runnable and has a highest counter(time slice)
+            if((*p)->state == TASK_RUNNING && (*p)->counter > c){
+                c = (*p)->counter;
+                next = i;
+            }
+        }
+
+        if(c)
+            break;
+
+        // If no task available, update the counter for all tasks
+        for(p=&LAST_TASK; p>&FIRST_TASK; p--){
+            if(!*p)
+                continue; // Skip if task slot is empty
+
+            (*p)->counter = ((*p)->priority >> 1) + (*p)->priority;
+        }
     }
-    else if (current == task[1]) {
-        switch_to(0);
-    }
+    switch_to(next); // Switch to the selected task
 }
 
+static inline void __sleep_on(struct task_struct **p, int state){
+    // Think of *p as the "wait queue."
+    // **p points to a wait queue head
+
+    struct task_struct *tmp;
+
+    // If the wait queue pointer is null, there's nothing to sleep on
+    if(!p)
+        return;
+
+    // INIT process should not sleep
+    if(current == &(init_task.task))
+        panic("init_task going to sleep");
+
+    // Save the task that was previously at the head of the wait queue.
+    tmp = *p;
+
+    // Makes the current task the new head
+    *p = current;
+    current->state = state;
+
+repeat:
+    schedule();
+
+    //  If another task has become the head of the wait queue (*p != current) while this process was sleeping.
+    //  It means this task needs to keep waiting, so it sets itself to TASK_UNINTERRUPTIBLE and loops back to schedule again.
+    if(*p && *p != current){
+        // The new task at the head of the queue (*p) is woken up
+        (**p).state = 0;
+        // The current process puts itself back to sleep.
+        current->state = TASK_UNINTERRUPTIBLE;
+        // Let the newly awakened task run.
+        goto repeat;
+    }
+
+    if(!*p)
+        printk("Warning: *p = NULL\n\r");
+
+    // Once the task is at the head of the queue (meaning it's been woken up)
+    // Removes itself from the wait queue by restoring the original head of the queue.
+    *p = tmp;
+
+    // If there was another task in the queue, wake it up.
+    // This creates a "chain reaction" to wake up all tasks in the queue.
+    if(*p)
+        tmp->state = 0;
+}
+
+void interruptible_sleep_on(struct task_struct** p) {
+    __sleep_on(p, TASK_INTERRUPTIBLE);
+}
+
+void sleep_on(struct task_struct** p) {
+    __sleep_on(p, TASK_UNINTERRUPTIBLE);
+}
+
+void wake_up(struct task_struct **p) {
+    if (p && *p) {
+        if ((**p).state == TASK_STOPPED)
+            printk("wake_up: TASK_STOPPED");
+        if ((**p).state == TASK_ZOMBIE)
+            printk("wake_up: TASK_ZOMBIE");
+        (**p).state=0;
+    }
+}
 
 void sched_init() {
     int i;
