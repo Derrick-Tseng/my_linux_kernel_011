@@ -1,51 +1,47 @@
 .code32
 .text
-.globl system_call, timer_interrupt
+.globl system_call, timer_interrupt, sys_fork
 
 EAX        = 0x00
 EBX        = 0x04
 ECX        = 0x08
 EDX        = 0x0C
-FS         = 0x10
-ES         = 0x14
-DS         = 0x18
-EIP        = 0x1c
-CS         = 0x20
-EFLAGS     = 0x24
-OLDESP     = 0x28
-OLDSS      = 0x2c
+ORIG_EAX   = 0x10
+FS         = 0x14
+ES         = 0x18
+DS         = 0x1c
+EIP        = 0x20
+CS         = 0x24
+EFLAGS     = 0x28
+OLDESP     = 0x2c
+OLDSS      = 0x30
 
 int_msg:
     .asciz  "In kernel interrupt\n\r"
 
 system_call:
-    pushl %eax
-    pushl %ecx
-    pushl %edx
     pushl %ds
     pushl %es
     pushl %fs
-    movl  $0x10, %eax
-    movw  %ax, %ds
-    movw  %ax, %es
-    movw  %ax, %fs
-    /* call  _printk */
-    pushl $int_msg
-    call  printk
-    popl  %eax
-    popl  %fs
-    popl  %es
-    popl  %ds
-    popl  %edx
-    popl  %ecx
-    popl  %eax
-    iret
+    pushl %eax
+    pushl %edx
+    pushl %ecx
+    pushl %ebx
+    movl  $0x10, %edx
+    movw  %dx, %ds
+    movw  %dx, %es
+    movl  $0x17, %edx
+    movw  %dx, %fs
+
+    call sys_call_table(, %eax, 4)
+    pushl %eax
 
 ret_from_sys_call:
     popl %eax
     popl %ebx
     popl %ecx
     popl %edx
+    addl $4, %esp
     popl %fs
     popl %es
     popl %ds
@@ -56,6 +52,7 @@ timer_interrupt:
     pushl %ds
     pushl %es
     pushl %fs
+    pushl $-1
     pushl %edx
     pushl %ecx
     pushl %ebx
@@ -74,3 +71,16 @@ timer_interrupt:
     addl  $4, %esp
     jmp   ret_from_sys_call
 
+.align 4
+sys_fork:
+    call  find_empty_process
+    testl %eax, %eax
+    js    1f
+    pushl %gs
+    pushl %esi
+    pushl %edi
+    pushl %ebp
+    pushl %eax
+    call  copy_process
+    addl  $20, %esp
+1:  ret

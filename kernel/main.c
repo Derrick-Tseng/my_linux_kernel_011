@@ -5,8 +5,12 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 #include <asm/system.h>
+#include <unistd.h>
 
 extern void mem_init(long start_mem, long end_mem);
+static inline _syscall0(int, fork);
+
+int errno;
 
 static long memory_end = 0;
 static long buffer_memory_end = 0;
@@ -45,7 +49,10 @@ void main(void) {
 
     move_to_user_mode();
 
-    while (1) {
+    if (fork() == 0) {
+        test_b();
+    }
+    else {
         test_a();
     }
 }

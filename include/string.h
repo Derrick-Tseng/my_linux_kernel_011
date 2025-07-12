@@ -50,8 +50,6 @@ char * strstr(const char * cs,const char * ct);
 
 int strlen(const char * s);
 
-static char * ___strtok;
-
 char * strtok(char * s,const char * ct);
 
 void * memcpy(void * dest,const void * src, int n);
