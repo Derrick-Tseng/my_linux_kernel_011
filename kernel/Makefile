@@ -50,6 +50,7 @@ panic.o : panic.c
 clean :
 	rm -f *.o
 	rm -f system
+	rm -f System.map
 	cd chr_drv; make clean; cd ..
 	cd ../mm; make clean; cd ../kernel
 	cd ../lib; make clean; cd ../kernel
