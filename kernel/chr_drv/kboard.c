@@ -7,9 +7,9 @@
 typedef void (*key_fn)();
 void do_self();
 void ctrl();
-void func(){};
+void func();
 
-void cursor(){};
+void cursor();
 
 void lshift();
 void rshift();
@@ -22,7 +22,7 @@ void uncaps();
 void alt() {}
 void unalt() {}
 void unctrl();
-void minus(){};
+void minus();
 void num();
 void scroll();
 
@@ -277,4 +277,54 @@ void scroll() {
 void num() {
     leds ^= 0x2; // Toggle num lock LED (bit 1)
     set_leds();
+}
+
+char* cur_table = "HA5 DGC YB623";
+char* num_table = "789 456 1230.";
+
+
+// Handle cursor/numpad keys (0x47-0x53)
+void cursor() {
+    char c = 0;
+    scan_code -= 0x47; // Normalize scan code to 0-12 range
+    if (scan_code < 0 || scan_code > 12) return;
+    
+    // If extended key (e0) or num lock is on
+    if (e0 || (leds & 0x2)) {
+        c = cur_table[scan_code];
+        if (c < '9') {
+            PUTCH('~', &read_q); // Send tilde for certain cursor keys
+        }
+        PUTCH(0x1b, &read_q); // ESC character
+        PUTCH(0x5b, &read_q); // '[' character (ANSI escape sequence)
+    }
+    else {
+        c = num_table[scan_code]; // Get numeric character when num lock off
+    }
+    PUTCH(c, &read_q);
+}
+
+// Handle function keys (F1-F12)
+void func() {
+    scan_code -= 0x3b; // Normalize F1-F10 scan codes
+    if (scan_code > 9) {
+        scan_code -= 18; // Adjust for F11-F12 scan codes
+    }
+    if (scan_code < 0 || scan_code > 11) {
+        return;
+    }
+    // Send ANSI escape sequence for function keys
+    PUTCH(0x1b, &read_q); // ESC
+    PUTCH(0x5b, &read_q); // '['
+    PUTCH(0x5b, &read_q); // '[' 
+    PUTCH('A' + scan_code, &read_q); // Function key identifier
+}
+
+// Handle minus key, with special case for extended keypad(numpad on the right) divide
+void minus() {
+    if (e0 == 1) {
+        PUTCH('/', &read_q); // Extended minus is keypad divide
+        return;
+    }
+    do_self(); // Regular minus key
 }
