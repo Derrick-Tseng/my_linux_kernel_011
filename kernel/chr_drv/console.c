@@ -1,6 +1,7 @@
 #include <linux/tty.h>
 #include <asm/io.h>
 #include <asm/system.h>
+#include <linux/sched.h>
 
 
 #define ORIG_X          (*(unsigned char *)0x90000)
@@ -17,6 +18,8 @@
 #define VIDEO_TYPE_CGA      0x11    /* CGA Display          */
 #define VIDEO_TYPE_EGAM     0x20    /* EGA/VGA in Monochrome Mode   */
 #define VIDEO_TYPE_EGAC     0x21    /* EGA/VGA in Color Mode    */
+
+extern void keyboard_interrupt(void);
 
 static unsigned char    video_type;     /* Type of display being used   */
 static unsigned long    video_num_columns;  /* Number of text columns   */
@@ -187,6 +190,8 @@ void con_write(const char* buf, int nr){
 
 
 void con_init() {
+    register unsigned char a;
+
     char * display_desc = "????";
     char * display_ptr;
 
@@ -248,4 +253,10 @@ void con_init() {
 
     gotoxy(ORIG_X, ORIG_Y);
     set_cursor();
+
+    set_trap_gate(0x21, &keyboard_interrupt);
+    outb_p(inb_p(0x21)&0xfd, 0x21); // Enable keyboard interrupts
+    a = inb_p(0x61);
+    outb_p(a | 0x80, 0x61); // Disable keyboard
+    outb(a, 0x61); // Enable keyboard to reset the keyboard controller
 }

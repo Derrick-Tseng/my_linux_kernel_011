@@ -1,13 +1,19 @@
-AR  := x86_64-elf-ar
+AR := x86_64-elf-ar
 LD := x86_64-elf-ld
 GCC := x86_64-elf-gcc
 CCFLAG := -m32 -I../../include -nostdinc -ffreestanding -fno-pic -Wall -fomit-frame-pointer -fno-stack-protector -c
-OBJS   := tty_io.o console.o
+OBJS := tty_io.o console.o keyboard.o kboard.o
 
 tty_io.o : tty_io.c
 	$(GCC) $(CCFLAG) -o $@ $<
 
 console.o : console.c
+	$(GCC) $(CCFLAG) -o $@ $<
+
+keyboard.o : keyboard.S
+	$(GCC) -m32 -traditional -c -o $@ $<
+
+kboard.o : kboard.c
 	$(GCC) $(CCFLAG) -o $@ $<
 
 chr_drv.a : $(OBJS)
