@@ -152,6 +152,55 @@ static void del(){
     }
 }
 
+void con_write(){
+    int nr;
+    char c;
+
+    nr = CHARS(&write_q);
+
+    while(nr--){
+        c = GETCH(&write_q);
+
+        if (c > 31 && c < 127) {
+            if (x >= video_num_columns) {
+                x -= video_num_columns;
+                pos -= video_size_row;
+                lf();
+            }
+
+            *(char *)pos = c;
+            *(((char*)pos) + 1) = attr;
+            pos += 2;
+            x++;
+        }
+        else if (c == 10 || c == 11 || c == 12)
+            lf();
+        else if (c == 13)
+            cr();
+        else if (c == 127) {
+            del();
+        }
+        else if (c == 8) {
+            if (x) {
+                x--;
+                pos -= 2;
+            }
+        }
+        // Handle tab character
+        else if(c == 9){
+            c = 8 - (x & 7); // Calculate spaces to next tab stop (8-character alignment)
+            x += c;
+            pos += c << 1; // Move position forward by c characters
+            if(x > video_num_columns){
+                x -= video_num_columns;
+                pos -= video_size_row;
+                lf();
+            }
+            c = 9; // Reset c to tab character for display
+        }
+    }
+}
+
 void con_print(const char* buf, int nr){
     char* str = buf;
     

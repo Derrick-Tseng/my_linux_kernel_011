@@ -1,6 +1,11 @@
 #include <linux/tty.h>
 
+struct tty_queue read_q = {0, 0, 0, 0, ""};
+struct tty_queue write_q = {0, 0, 0, 0, ""};
+
 void tty_init() {
+    read_q = (struct tty_queue){0, 0, 0, 0, ""};
+    write_q = (struct tty_queue){0, 0, 0, 0, ""};
     con_init();
 }
 
@@ -30,4 +35,39 @@ char GETCH(struct tty_queue *q){
 // Check if the tty queue is empty
 char EMPTY(struct tty_queue *q){
     return (q->head == q->tail);
+}
+
+void copy_to_cooked() {
+    signed char c;
+
+    while (!EMPTY(&read_q)) {
+        c = GETCH(&read_q);
+        
+        // Newline character
+        if (c == 10) {
+            PUTCH(10, &write_q);
+            PUTCH(13, &write_q);
+        }
+        // Backspace, Tab, and Enter
+        else if (c == 8 || c == 9 || c == 13) {
+            PUTCH(c, &write_q);
+        }
+        // Printable characters
+        else if (c >= 32 && c < 127) {
+            PUTCH(c, &write_q);
+        }
+        // Control characters (e.g., Ctrl + A)
+        else if (c < 32) {
+            PUTCH('^', &write_q);
+            PUTCH(c + 64, &write_q);
+        }
+        else
+            PUTCH(c, &write_q);
+
+        con_write();
+    }
+}
+
+void do_tty_interrupt() {
+    copy_to_cooked();
 }

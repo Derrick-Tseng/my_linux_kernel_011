@@ -7,6 +7,8 @@ void con_init();
 void tty_init();
 
 void con_print(const char* buf, int nr);
+void con_write();
+void do_tty_interrupt();
 
 struct tty_queue{
     unsigned long data;
@@ -20,5 +22,8 @@ unsigned long CHARS(struct tty_queue *q);
 void PUTCH(char c, struct tty_queue *q);
 char GETCH(struct tty_queue *q);
 char EMPTY(struct tty_queue *q);
+
+extern struct tty_queue read_q;
+extern struct tty_queue write_q;
 
 #endif
