@@ -5,7 +5,7 @@ void tty_init() {
 }
 
 void tty_write(unsigned channel, char* buf, int nr) {
-    con_write(buf, nr);
+    con_print(buf, nr);
 }
 
 // Calculate the number of characters in the tty queue

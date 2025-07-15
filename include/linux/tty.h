@@ -6,7 +6,7 @@
 void con_init();
 void tty_init();
 
-void con_write(const char* buf, int nr);
+void con_print(const char* buf, int nr);
 
 struct tty_queue{
     unsigned long data;

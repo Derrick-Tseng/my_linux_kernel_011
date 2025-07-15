@@ -152,7 +152,7 @@ static void del(){
     }
 }
 
-void con_write(const char* buf, int nr){
+void con_print(const char* buf, int nr){
     char* str = buf;
     
     while(nr--) {
