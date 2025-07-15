@@ -41,7 +41,7 @@ static char shift_map[0x7f] = {
 unsigned char scan_code, leds, mode, e0;
 
 void keyboard_handler(void){
-    unsigned char a, scan_code;
+    unsigned char scan_code;
 
     scan_code = inb_p(0x60);
     outb_p(0x20, 0x20);
